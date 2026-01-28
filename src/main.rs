@@ -6,7 +6,7 @@ use std::process::Command;
 use zbus::export::futures_util::StreamExt;
 use zbus::Connection;
 
-// --- KONFIGURACJA HARDWARE (Z Twoich plików) ---
+// --- KONFIGURACJA HARDWARE ---
 const EC_PATH: &str = "/sys/kernel/debug/ec/ec0/io";
 const LED_OFFSET: u64 = 0x10;
 const LED_BIT: u8 = 6;      // Bit 6
