@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # --- CONFIGURATION ---
-# Nazwa pliku wygenerowanego przez cargo (w target/release/)
 SOURCE_BINARY_NAME="legion-led"
-# Nazwa pod jaką zainstalujemy program w systemie (krótsza)
 FINAL_BINARY_NAME="legion-led"
 INSTALL_PATH="/usr/local/bin/$FINAL_BINARY_NAME"
 SERVICE_NAME="legion-led.service"
+MODULE_CONF="/etc/modules-load.d/legion-led.conf"
+MODPROBE_CONF="/etc/modprobe.d/legion-led.conf"
 
 # 1. Root Check
 if [ "$EUID" -ne 0 ]; then
@@ -15,13 +15,16 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # --- MODE: UNINSTALL ---
-# If the user runs "./install.sh uninstall", we go here
 if [ "$1" == "uninstall" ]; then
     echo ">>> [UNINSTALL] Stopping and removing service..."
     systemctl stop $SERVICE_NAME 2>/dev/null
     systemctl disable $SERVICE_NAME 2>/dev/null
     rm -f /etc/systemd/system/$SERVICE_NAME
     systemctl daemon-reload
+
+    echo ">>> [UNINSTALL] Removing module configs..."
+    rm -f "$MODULE_CONF"
+    rm -f "$MODPROBE_CONF"
 
     echo ">>> [UNINSTALL] Unlocking filesystem..."
     steamos-readonly disable 2>/dev/null
@@ -39,14 +42,13 @@ fi
 # --- MODE: INSTALL (Default) ---
 
 # 2. Find the binary
-# Check current directory first, then target/release
 if [ -f "./$SOURCE_BINARY_NAME" ]; then
     BINARY_TO_INSTALL="./$SOURCE_BINARY_NAME"
 elif [ -f "./target/release/$SOURCE_BINARY_NAME" ]; then
     BINARY_TO_INSTALL="./target/release/$SOURCE_BINARY_NAME"
 else
     echo "ERROR: Binary file '$SOURCE_BINARY_NAME' not found."
-    echo "Did you run 'cargo build --release'?"
+    echo "Did you run 'cargo build --release' or download the binary?"
     exit 1
 fi
 
@@ -63,7 +65,16 @@ cp -f "$BINARY_TO_INSTALL" "$INSTALL_PATH"
 chmod +x "$INSTALL_PATH"
 chown root:root "$INSTALL_PATH"
 
-echo ">>> [4/5] Creating Hardened Systemd Service..."
+echo ">>> [4/5] Configuring Kernel Modules & Service..."
+
+# Ensure ec_sys module loads on boot with write support
+echo "ec_sys" > "$MODULE_CONF"
+echo "options ec_sys write_support=1" > "$MODPROBE_CONF"
+
+# Load it immediately for this session
+modprobe ec_sys write_support=1 2>/dev/null
+
+# Create a clean, unrestricted service file
 cat <<EOF > /etc/systemd/system/$SERVICE_NAME
 [Unit]
 Description=Legion Go S LED Sleep Controller
@@ -71,23 +82,11 @@ After=multi-user.target
 
 [Service]
 Type=simple
-# Load the kernel module before starting the daemon
-ExecStartPre=/usr/sbin/modprobe ec_sys write_support=1
-# Run the binary with the 'daemon' subcommand
 ExecStart=$INSTALL_PATH daemon
 Restart=always
 RestartSec=5
 User=root
-
-# --- PERMISSIONS ---
-# Crucial: Allow writing to EC debugfs
-ReadWritePaths=/sys/kernel/debug/ec
-
-# --- SECURITY HARDENING ---
-ProtectHome=true
-ProtectSystem=full
-PrivateTmp=true
-NoNewPrivileges=true
+# No hardening - full hardware access required
 
 [Install]
 WantedBy=multi-user.target
