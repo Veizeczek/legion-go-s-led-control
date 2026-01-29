@@ -22,29 +22,29 @@ It solves the common issue of the **Power LED breathing (pulsing)** while the de
 
 You can install the latest release directly via terminal. This script will download the binary, install the systemd service, and set up permissions.
 
-```bash
-mkdir -p /tmp/lgs-install && cd /tmp/lgs-install && curl -L -o legion-led [https://github.com/Veizeczek/legion-go-s-led-control/releases/download/v1.0/legion-led](https://github.com/Veizeczek/legion-go-s-led-control/releases/download/v1.0/legion-led) && curl -L -o install.sh [https://raw.githubusercontent.com/Veizeczek/legion-go-s-led-control/main/install.sh](https://raw.githubusercontent.com/Veizeczek/legion-go-s-led-control/main/install.sh) && chmod +x install.sh && sudo ./install.sh && cd ~ && rm -rf /tmp/lgs-install
-```
+~~~bash
+mkdir -p /tmp/lgs-install && cd /tmp/lgs-install && curl -L -o legion-led https://github.com/Veizeczek/legion-go-s-led-control/releases/download/v1.0/legion-led && curl -L -o install.sh https://raw.githubusercontent.com/Veizeczek/legion-go-s-led-control/main/install.sh && chmod +x install.sh && sudo ./install.sh && cd ~ && rm -rf /tmp/lgs-install
+~~~
 
 ## Manual Usage
 Once installed, the service runs automatically in the background. However, you can control the LED manually if needed:
 
 Turn the LED OFF:
 
-```bash
+~~~bash
 sudo legion-led off
-```
+~~~
 
 Turn the LED ON (Default):
 
-```bash
+~~~bash
 sudo legion-led on
-```
+~~~
 
 Check service status:
-```bash
+~~~bash
 systemctl status legion-led
-```
+~~~
 
 ## Technical Details
 This daemon interacts with the Lenovo Embedded Controller (EC) via the Linux ec_sys kernel module.
