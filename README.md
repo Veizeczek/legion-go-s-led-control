@@ -3,7 +3,7 @@
 ![Language](https://img.shields.io/badge/Written_in-Rust-orange)
 ![Platform](https://img.shields.io/badge/Platform-Linux%20%2F%20SteamOS-green)
 
-A lightweight, efficient daemon written in **Rust** designed for the **Lenovo Legion Go S** running Linux (SteamOS, Bazzite, ChimeraOS, etc.).
+A lightweight, efficient daemon written in **Rust** designed for the **Lenovo Legion Go S** running Linux (SteamOS).
 
 It solves the common issue of the **Power LED breathing (pulsing)** while the device is in sleep mode, which can be distracting at night.
 
